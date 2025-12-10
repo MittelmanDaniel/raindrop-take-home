@@ -538,6 +538,106 @@ def advanced_features_5_advanced_aggregates():
 
 
 # ============================================================================
+# CATEGORY 5: PRODUCTION FEATURES
+# Tests for new advanced grammar features (CTEs, Window Functions, JOINs, etc.)
+# ============================================================================
+
+def production_features_1_ctes():
+    """Test 1: Common Table Expressions (WITH clause)."""
+    natural_language = "With high_earners as (Select * from IBM_HR_Employee_Attrition where monthlyincome > 5000) Select count(*) from high_earners"
+    
+    try:
+        sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
+        # Check for CTE syntax
+        assert "WITH " in sql.upper(), "SQL should contain WITH clause"
+        assert "AS (" in sql.upper(), "SQL should contain AS (...) used in CTE"
+        
+        print("✅ Production Features Test 1 PASSED: CTEs")
+        print(f"   SQL: {sql}")
+        return True
+    except Exception as e:
+        print(f"❌ Production Features Test 1 FAILED: {str(e)}")
+        return False
+
+
+def production_features_2_window_functions():
+    """Test 2: Window Functions (OVER clause)."""
+    natural_language = "Show employee number and their rank by income within their department"
+    
+    try:
+        sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
+        # Check for Window syntax
+        assert "OVER" in sql.upper(), "SQL should contain OVER clause"
+        assert "PARTITION BY" in sql.upper(), "SQL should contain PARTITION BY"
+        
+        print("✅ Production Features Test 2 PASSED: Window Functions")
+        print(f"   SQL: {sql}")
+        return True
+    except Exception as e:
+        print(f"❌ Production Features Test 2 FAILED: {str(e)}")
+        return False
+
+
+def production_features_3_self_join():
+    """Test 3: Self Join capability."""
+    natural_language = "Show employees who have the same role as employee 1001"
+    
+    try:
+        sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
+        # Check for JOIN syntax - Note: The natural language might resolve to a subquery IN (...) 
+        # or a JOIN. We'll accept either VALID grammar, but ideally valid JOIN syntax if generated.
+        # This test ensures that IF a Join is generated, it is valid.
+        # Let's verify at least it parses.
+        
+        if "JOIN" in sql.upper():
+            assert "ON" in sql.upper() or "USING" in sql.upper(), "JOIN should have ON or USING"
+
+        print("✅ Production Features Test 3 PASSED: Self Join / Subquery")
+        print(f"   SQL: {sql}")
+        return True
+    except Exception as e:
+        print(f"❌ Production Features Test 3 FAILED: {str(e)}")
+        return False
+
+
+def production_features_4_dynamic_functions():
+    """Test 4: Functions not in the original whitelist."""
+    # 'uniq' was not in the original whitelist
+    natural_language = "Show the unique count of job roles using the uniq function"
+    
+    try:
+        sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
+        assert "uniq(" in sql.lower(), "SQL should contain uniq function"
+        
+        print("✅ Production Features Test 4 PASSED: Dynamic Functions")
+        print(f"   SQL: {sql}")
+        return True
+    except Exception as e:
+        print(f"❌ Production Features Test 4 FAILED: {str(e)}")
+        return False
+
+
+# ============================================================================
 # Test Runner
 # ============================================================================
 
@@ -576,6 +676,12 @@ def run_all_evals():
             ("HAVING clause", advanced_features_3_having_clause),
             ("CASE expressions", advanced_features_4_case_expressions),
             ("Advanced aggregates", advanced_features_5_advanced_aggregates),
+        ]),
+        ("Production Features", [
+            ("CTEs", production_features_1_ctes),
+            ("Window Functions", production_features_2_window_functions),
+            ("Self Join", production_features_3_self_join),
+            ("Dynamic Functions", production_features_4_dynamic_functions),
         ]),
     ]
     
