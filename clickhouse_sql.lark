@@ -20,6 +20,7 @@ DISTINCT: "DISTINCT"
 AND: "AND"
 OR: "OR"
 LIKE: "LIKE"
+ILIKE: "ILIKE"
 IN: "IN"
 NOT: "NOT"
 IS: "IS"
@@ -34,6 +35,7 @@ THEN: "THEN"
 ELSE: "ELSE"
 END: "END"
 BETWEEN: "BETWEEN"
+CAST: "CAST"
 
 // ---------- Main query structure ----------
 start: select_stmt " FORMAT JSON" [";"]
@@ -44,14 +46,21 @@ select_stmt: SELECT " " ["DISTINCT "] select_elements " FROM " table_name [where
 select_elements: "*" | select_element | select_element ", " select_elements
 select_element: column_expr | column_expr " AS " identifier | column_expr " " identifier
 
-// ---------- Column expressions (simple - no binary operators to avoid ambiguity) ----------
-column_expr: column_identifier
-           | aggregate_func
-           | function_call
-           | literal
-           | "(" column_expr ")"
-           | "CASE " when_clause [" ELSE " column_expr] " END"
-           | "CASE " when_clause " " when_clause [" ELSE " column_expr] " END"
+// ---------- Column expressions (with binary operators) ----------
+column_expr: column_expr_term
+           | column_expr " + " column_expr_term -> add_expr
+           | column_expr " - " column_expr_term -> sub_expr
+           | column_expr " * " column_expr_term -> mul_expr
+           | column_expr " / " column_expr_term -> div_expr
+           | column_expr " % " column_expr_term -> mod_expr
+
+column_expr_term: column_identifier
+                | aggregate_func
+                | function_call
+                | literal
+                | "(" column_expr ")"
+                | "CASE " when_clause+ [" ELSE " column_expr] " END"
+                | "CAST(" column_expr " AS " data_type ")"
 
 column_identifier: identifier
 
@@ -74,23 +83,24 @@ table_name: "IBM_HR_Employee_Attrition"
 // ---------- Clauses (operators allowed here) ----------
 where_clause: " WHERE " condition
 condition: predicate | condition " AND " condition | condition " OR " condition | "(" condition ")"
-predicate: column_identifier " = " value
-         | column_identifier " != " value
-         | column_identifier " > " value
-         | column_identifier " < " value
-         | column_identifier " >= " value
-         | column_identifier " <= " value
-         | column_identifier " IS " ["NOT "] NULL
-         | column_identifier [" NOT"] " LIKE " STRING_LITERAL
-         | column_identifier [" NOT"] " IN (" value_list ")"
-         | column_identifier " BETWEEN " value " AND " value
+predicate: column_expr " = " value
+         | column_expr " != " value
+         | column_expr " > " value
+         | column_expr " < " value
+         | column_expr " >= " value
+         | column_expr " <= " value
+         | column_expr " IS " ["NOT "] NULL
+         | column_expr [" NOT"] " LIKE " STRING_LITERAL
+         | column_expr [" NOT"] " ILIKE " STRING_LITERAL
+         | column_expr [" NOT"] " IN (" value_list ")"
+         | column_expr " BETWEEN " value " AND " value
 
 group_by_clause: " GROUP BY " group_by_list
-group_by_list: column_identifier | column_identifier ", " group_by_list
+group_by_list: column_expr | column_expr ", " group_by_list
 having_clause: " HAVING " condition
 order_by_clause: " ORDER BY " order_by_list
 order_by_list: order_by_item | order_by_item ", " order_by_list
-order_by_item: column_identifier [" ASC" | " DESC"]
+order_by_item: column_expr [" ASC" | " DESC"]
 limit_clause: " LIMIT " NUMBER
 
 // ---------- Case expressions ----------
@@ -98,7 +108,13 @@ when_clause: "WHEN " condition " THEN " column_expr
 
 // ---------- Literals and values ----------
 literal: NUMBER | STRING_LITERAL | NULL
-value: NUMBER | STRING_LITERAL | NULL
+value: column_expr
 value_list: value | value ", " value_list
+
+// ---------- Data types (for CAST) ----------
+data_type: "Int8" | "Int16" | "Int32" | "Int64"
+         | "UInt8" | "UInt16" | "UInt32" | "UInt64"
+         | "Float32" | "Float64"
+         | "String" | "Date" | "DateTime"
 
 identifier: IDENTIFIER
