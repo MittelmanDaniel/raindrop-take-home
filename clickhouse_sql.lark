@@ -53,10 +53,12 @@ column_expr: column_expr_term
            | column_expr " * " column_expr_term -> mul_expr
            | column_expr " / " column_expr_term -> div_expr
            | column_expr " % " column_expr_term -> mod_expr
+           | column_expr " || " column_expr_term -> concat_expr
 
 column_expr_term: column_identifier
                 | aggregate_func
                 | function_call
+                | general_func
                 | literal
                 | "(" column_expr ")"
                 | "CASE " when_clause+ [" ELSE " column_expr] " END"
@@ -70,12 +72,57 @@ function_call: identifier "(" function_args ")"
              | identifier "()"
 function_args: column_expr | column_expr ", " function_args
 
-aggregate_func: count_func | sum_func | avg_func | min_func | max_func
+// Common string functions
+string_func: "length(" column_expr ")"
+           | "upper(" column_expr ")"
+           | "lower(" column_expr ")"
+           | "substring(" column_expr ", " NUMBER ", " NUMBER ")"
+           | "substring(" column_expr ", " NUMBER ")"
+           | "concat(" function_args ")"
+           | "trim(" column_expr ")"
+           | "ltrim(" column_expr ")"
+           | "rtrim(" column_expr ")"
+
+// Common date/time functions
+date_func: "toDate(" column_expr ")"
+         | "toDateTime(" column_expr ")"
+         | "formatDateTime(" column_expr ", " STRING_LITERAL ")"
+         | "toStartOfDay(" column_expr ")"
+         | "toStartOfMonth(" column_expr ")"
+         | "toStartOfYear(" column_expr ")"
+         | "toYear(" column_expr ")"
+         | "toMonth(" column_expr ")"
+         | "toDayOfMonth(" column_expr ")"
+         | "now()"
+
+// Common math functions
+math_func: "abs(" column_expr ")"
+         | "round(" column_expr ")"
+         | "round(" column_expr ", " NUMBER ")"
+         | "floor(" column_expr ")"
+         | "ceil(" column_expr ")"
+         | "sqrt(" column_expr ")"
+         | "pow(" column_expr ", " NUMBER ")"
+         | "log(" column_expr ")"
+
+// Common conditional functions
+conditional_func: "if(" column_expr ", " column_expr ", " column_expr ")"
+                | "coalesce(" function_args ")"
+                | "isNull(" column_expr ")"
+                | "isNotNull(" column_expr ")"
+
+// All function types
+general_func: string_func | date_func | math_func | conditional_func
+
+aggregate_func: count_func | sum_func | avg_func | min_func | max_func | stddev_func | variance_func | quantile_func
 count_func: "count(*)" | "count(DISTINCT " column_expr ")" | "count()"
 sum_func: "sum(" column_expr ")"
 avg_func: "avg(" column_expr ")"
 min_func: "min(" column_expr ")"
 max_func: "max(" column_expr ")"
+stddev_func: "stddevPop(" column_expr ")" | "stddevPopStable(" column_expr ")" | "stddevSamp(" column_expr ")" | "stddevSampStable(" column_expr ")"
+variance_func: "varPop(" column_expr ")" | "varSamp(" column_expr ")"
+quantile_func: "quantile(" column_expr ")" | "quantile(" NUMBER ")(" column_expr ")"
 
 // Fixed table name
 table_name: "IBM_HR_Employee_Attrition"
