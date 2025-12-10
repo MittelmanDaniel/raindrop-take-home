@@ -1,74 +1,134 @@
-// ClickHouse SQL Grammar - Expanded
+// ClickHouse SQL Grammar - Extra Strict Spacing & Scalar Subqueries
+
 // Uses actual spaces and operators directly in rules
 
 // ---------- Terminals ----------
+
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
+
 NUMBER: /[0-9]+(\.[0-9]*)?/
+
 STRING_LITERAL: /'[^']*'/
+
 COMMENT: /--[^\n]*/
+
 %ignore COMMENT
 
 // ---------- SQL Keywords ----------
+
 SELECT: "SELECT"
+
 FROM: "FROM"
+
 WHERE: "WHERE"
+
 GROUP: "GROUP"
+
 BY: "BY"
+
 ORDER: "ORDER"
+
 LIMIT: "LIMIT"
+
 HAVING: "HAVING"
+
 AS: "AS"
+
 DISTINCT: "DISTINCT"
+
 AND: "AND"
+
 OR: "OR"
+
 LIKE: "LIKE"
+
 ILIKE: "ILIKE"
+
 IN: "IN"
+
 NOT: "NOT"
+
 IS: "IS"
+
 NULL: "NULL"
+
 ASC: "ASC"
+
 DESC: "DESC"
+
 FORMAT: "FORMAT"
+
 JSON: "JSON"
+
 CASE: "CASE"
+
 WHEN: "WHEN"
+
 THEN: "THEN"
+
 ELSE: "ELSE"
+
 END: "END"
+
 BETWEEN: "BETWEEN"
+
 CAST: "CAST"
+
 WITH: "WITH"
+
 JOIN: "JOIN"
+
 INNER: "INNER"
+
 LEFT: "LEFT"
+
 RIGHT: "RIGHT"
+
 FULL: "FULL"
+
 CROSS: "CROSS"
+
 ON: "ON"
+
 USING: "USING"
+
 UNION: "UNION"
+
 ALL: "ALL"
+
 OVER: "OVER"
+
 PARTITION: "PARTITION"
+
 ROWS: "ROWS"
+
 PRECEDING: "PRECEDING"
+
 FOLLOWING: "FOLLOWING"
+
 CURRENT: "CURRENT"
+
 ROW: "ROW"
+
 UNBOUNDED: "UNBOUNDED"
+
 PREWHERE: "PREWHERE"
+
 OFFSET: "OFFSET"
 
 // ---------- Main query structure ----------
+
 start: statement " FORMAT JSON" [";"]
 
 statement: select_query
 
 select_query: [with_clause] select_stmt (union_clause)*
 
-with_clause: "WITH " cte_list
-cte_list: cte_element | cte_element ", " cte_list
+with_clause: "WITH " cte_list " "
+
+cte_list: cte_element
+    | cte_element ", " cte_list
+
 cte_element: identifier " AS " "(" select_query ")"
 
 union_clause: " UNION ALL " select_stmt
@@ -78,93 +138,130 @@ select_stmt: SELECT " " ["DISTINCT "] select_elements [" FROM " from_clause] [pr
 from_clause: table_expr (join_clause)*
 
 table_expr: table_identifier [" AS " identifier]
-          | "(" select_query ")" [" AS " identifier]
+    | "(" " " select_query " " ")" [" AS " identifier]
 
 join_clause: [join_type] " JOIN " table_expr join_condition
 
-join_type: "INNER" | "LEFT" | "RIGHT" | "FULL" | "CROSS"
+join_type: "INNER"
+    | "LEFT"
+    | "RIGHT"
+    | "FULL"
+    | "CROSS"
 
 join_condition: " ON " condition
-              | " USING " "(" identifier_list ")"
+    | " USING " "(" identifier_list ")"
 
 // ---------- Select elements ----------
-select_elements: "*" | select_element | select_element ", " select_elements
-select_element: column_expr | column_expr " AS " identifier | column_expr " " identifier
+
+select_elements: "*"
+    | select_element
+    | select_element ", " select_elements
+
+select_element: column_expr
+    | column_expr " AS " identifier
+    | column_expr " " identifier
 
 // ---------- Column expressions (with binary operators) ----------
+
 column_expr: column_expr_term
-           | column_expr " + " column_expr_term -> add_expr
-           | column_expr " - " column_expr_term -> sub_expr
-           | column_expr " * " column_expr_term -> mul_expr
-           | column_expr " / " column_expr_term -> div_expr
-           | column_expr " % " column_expr_term -> mod_expr
-           | column_expr " || " column_expr_term -> concat_expr
+    | column_expr " + " column_expr_term -> add_expr
+    | column_expr " - " column_expr_term -> sub_expr
+    | column_expr " * " column_expr_term -> mul_expr
+    | column_expr " / " column_expr_term -> div_expr
+    | column_expr " % " column_expr_term -> mod_expr
+    | column_expr " || " column_expr_term -> concat_expr
 
 column_expr_term: column_identifier
-                | function_call
-                | literal
-                | "(" column_expr ")"
-                | "CASE " when_clause+ [" ELSE " column_expr] " END"
-                | "CAST(" column_expr " AS " type_identifier ")"
-                | "[" value_list "]"  -> array_literal
+    | function_call
+    | literal
+    | "(" column_expr ")"
+    | "(" " " select_query " " ")"
+    | "CASE " when_clause+ [" ELSE " column_expr] " END"
+    | "CAST(" column_expr " AS " type_identifier ")"
+    | "[" value_list "]" -> array_literal
 
 column_identifier: identifier ["." identifier]
 
 // ---------- Functions & Window Functions ----------
+
 function_call: identifier "(" [function_args] ")" [window_spec]
-             | identifier "(DISTINCT " function_args ")"
+    | identifier "(DISTINCT " function_args ")"
 
 window_spec: " OVER " "(" [partition_by] [order_by_window] ")"
-partition_by: "PARTITION BY " group_by_list
-order_by_window: "ORDER BY " order_by_list
 
-function_args: column_expr | column_expr ", " function_args
+partition_by: "PARTITION BY " group_by_list
+
+order_by_window: " ORDER BY " order_by_list
+
+function_args: column_expr
+    | column_expr ", " function_args
 
 // ---------- Clauses ----------
+
 prewhere_clause: " PREWHERE " condition
+
 where_clause: " WHERE " condition
 
 condition: predicate
-         | condition " AND " condition
-         | condition " OR " condition
-         | "NOT " condition
-         | "(" condition ")"
+    | condition " AND " condition
+    | condition " OR " condition
+    | "NOT " condition
+    | "(" condition ")"
 
 predicate: column_expr " = " value
-         | column_expr " != " value
-         | column_expr " > " value
-         | column_expr " < " value
-         | column_expr " >= " value
-         | column_expr " <= " value
-         | column_expr " IS " ["NOT "] NULL
-         | column_expr [" NOT"] " LIKE " STRING_LITERAL
-         | column_expr [" NOT"] " ILIKE " STRING_LITERAL
-         | column_expr [" NOT"] " IN " "(" (select_query | value_list) ")"
-         | column_expr " BETWEEN " value " AND " value
+    | column_expr " != " value
+    | column_expr " > " value
+    | column_expr " < " value
+    | column_expr " >= " value
+    | column_expr " <= " value
+    | column_expr " IS " ["NOT "] NULL
+    | column_expr [" NOT"] " LIKE " STRING_LITERAL
+    | column_expr [" NOT"] " ILIKE " STRING_LITERAL
+    | column_expr [" NOT"] " IN " "(" (select_query | value_list) ")"
+    | column_expr " BETWEEN " value " AND " value
 
 group_by_clause: " GROUP BY " group_by_list
-group_by_list: column_expr | column_expr ", " group_by_list
+
+group_by_list: column_expr
+    | column_expr ", " group_by_list
 
 having_clause: " HAVING " condition
 
 order_by_clause: " ORDER BY " order_by_list
-order_by_list: order_by_item | order_by_item ", " order_by_list
+
+order_by_list: order_by_item
+    | order_by_item ", " order_by_list
+
 order_by_item: column_expr [" ASC" | " DESC"]
 
-limit_clause: " LIMIT " [NUMBER ", "] NUMBER [ " OFFSET " NUMBER ]
+limit_clause: " LIMIT " [NUMBER ", "] NUMBER [" OFFSET " NUMBER]
 
 // ---------- Case expressions ----------
+
 when_clause: "WHEN " condition " THEN " column_expr
 
 // ---------- Literals and values ----------
-literal: NUMBER | STRING_LITERAL | NULL
+
+literal: NUMBER
+    | STRING_LITERAL
+    | NULL
+
 value: column_expr
-value_list: value | value ", " value_list
+
+value_list: value
+    | value ", " value_list
 
 // ---------- Identifiers ----------
+
 // Allow flexible identifiers for tables, functions, columns
-// Also ensure we capture standard identifiers appropriately
+
 identifier: IDENTIFIER
-identifier_list: identifier | identifier ", " identifier_list
-table_identifier: identifier | identifier "." identifier
-type_identifier: identifier | identifier "(" [NUMBER] ")"
+
+identifier_list: identifier
+    | identifier ", " identifier_list
+
+table_identifier: identifier
+    | identifier "." identifier
+
+type_identifier: identifier
+    | identifier "(" [NUMBER] ")"
