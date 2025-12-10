@@ -129,6 +129,11 @@ def query_execution_1_basic_count():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         assert "data" in results, "Results should have data field"
@@ -150,6 +155,11 @@ def query_execution_2_aggregation():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         assert "data" in results, "Results should have data field"
@@ -170,6 +180,11 @@ def query_execution_3_filtered_query():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         assert "data" in results, "Results should have data field"
@@ -190,6 +205,11 @@ def query_execution_4_grouped_query():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         assert "data" in results, "Results should have data field"
@@ -210,6 +230,11 @@ def query_execution_5_complex_query():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         assert "data" in results, "Results should have data field"
@@ -235,6 +260,11 @@ def semantic_accuracy_1_correct_columns():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         # Check that SQL contains the expected columns
@@ -259,6 +289,11 @@ def semantic_accuracy_2_correct_filtering():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         # Check that SQL filters by both conditions
@@ -280,6 +315,11 @@ def semantic_accuracy_3_correct_aggregation():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         # Check that SQL uses average/avg function
@@ -301,6 +341,11 @@ def semantic_accuracy_4_correct_grouping():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         # Check that SQL groups by both columns
@@ -322,6 +367,11 @@ def semantic_accuracy_5_correct_ordering():
     
     try:
         sql = generate_sql_from_natural_language(natural_language)
+        
+        # Validate SQL conforms to CFG grammar
+        is_valid, error = validate_sql_with_grammar(sql)
+        assert is_valid, f"SQL does not conform to CFG grammar: {error}"
+        
         results = execute_query(sql)
         
         # Check that SQL orders by monthly income descending
