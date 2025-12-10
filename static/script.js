@@ -1,3 +1,19 @@
+function createStatCard(label, value) {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    
+    const strong = document.createElement('strong');
+    strong.textContent = label;
+    
+    const span = document.createElement('span');
+    span.textContent = value;
+    
+    card.appendChild(strong);
+    card.appendChild(span);
+    
+    return card;
+}
+
 function useExample(query) {
     document.getElementById('queryInput').value = query;
     submitQuery();
@@ -44,25 +60,27 @@ async function submitQuery() {
 
         // Display stats
         const statsDiv = document.getElementById('stats');
+        statsDiv.innerHTML = ''; // Clear previous stats
+        
         if (data.results && data.results.rows !== undefined) {
-            statsDiv.innerHTML = `
-                <div class="stat-card">
-                    <strong>Rows Returned</strong>
-                    <span>${data.results.rows}</span>
-                </div>
-                ${data.results.statistics ? `
-                    <div class="stat-card">
-                        <strong>Query Time</strong>
-                        <span>${(data.results.statistics.elapsed * 1000).toFixed(2)} ms</span>
-                    </div>
-                    <div class="stat-card">
-                        <strong>Rows Read</strong>
-                        <span>${data.results.statistics.rows_read || 'N/A'}</span>
-                    </div>
-                ` : ''}
-            `;
-        } else {
-            statsDiv.innerHTML = '';
+            // Rows Returned card
+            const rowsCard = createStatCard('Rows Returned', data.results.rows);
+            statsDiv.appendChild(rowsCard);
+            
+            // Query Time and Rows Read cards (if statistics available)
+            if (data.results.statistics) {
+                const timeCard = createStatCard(
+                    'Query Time', 
+                    `${(data.results.statistics.elapsed * 1000).toFixed(2)} ms`
+                );
+                statsDiv.appendChild(timeCard);
+                
+                const readCard = createStatCard(
+                    'Rows Read', 
+                    data.results.statistics.rows_read || 'N/A'
+                );
+                statsDiv.appendChild(readCard);
+            }
         }
 
         // Display JSON data
