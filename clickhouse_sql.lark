@@ -1,32 +1,10 @@
-// ClickHouse SQL Grammar (converted from official ANTLR grammar)
-// Focused on SELECT statements for read-only queries
+// ClickHouse SQL Grammar - Simplified for CFG
+// Uses actual spaces and operators directly in rules
 
 // ---------- Terminals ----------
 IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
 NUMBER: /[0-9]+/
 STRING_LITERAL: /'[^']*'/
-FLOATING_LITERAL: /[0-9]+\.[0-9]*([eE][+-]?[0-9]+)?/
-
-// ---------- Punctuation & operators ----------
-SP: " "
-COMMA: ","
-SEMI: ";"
-LPAREN: "("
-RPAREN: ")"
-LBRACKET: "["
-RBRACKET: "]"
-DOT: "."
-GT: ">"
-LT: "<"
-GTE: ">="
-LTE: "<="
-EQ: "="
-NEQ: "!=" | "<>"
-PLUS: "+"
-DASH: "-"
-ASTERISK: "*"
-SLASH: "/"
-PERCENT: "%"
 
 // ---------- SQL Keywords ----------
 SELECT: "SELECT"
@@ -42,124 +20,85 @@ DISTINCT: "DISTINCT"
 AND: "AND"
 OR: "OR"
 LIKE: "LIKE"
-ILIKE: "ILIKE"
 IN: "IN"
 NOT: "NOT"
 IS: "IS"
 NULL: "NULL"
 ASC: "ASC"
-ASCENDING: "ASCENDING"
 DESC: "DESC"
-DESCENDING: "DESCENDING"
 FORMAT: "FORMAT"
 JSON: "JSON"
-ALL: "ALL"
-BETWEEN: "BETWEEN"
 CASE: "CASE"
 WHEN: "WHEN"
 THEN: "THEN"
 ELSE: "ELSE"
 END: "END"
-CAST: "CAST"
-ASOF: "ASOF"
-GLOBAL: "GLOBAL"
-PREWHERE: "PREWHERE"
-WITH: "WITH"
-SAMPLE: "SAMPLE"
-OFFSET: "OFFSET"
-UNION: "UNION"
-EXCEPT: "EXCEPT"
-INTERSECT: "INTERSECT"
-CUBE: "CUBE"
-ROLLUP: "ROLLUP"
-TOTALS: "TOTALS"
-FIRST: "FIRST"
-LAST: "LAST"
-NULLS: "NULLS"
-TIES: "TIES"
+BETWEEN: "BETWEEN"
 
 // ---------- Main query structure ----------
-start: select_stmt SP FORMAT SP JSON [SEMI]
+start: select_stmt " FORMAT JSON" [";"]
 
-select_stmt: SELECT [DISTINCT] [ALL] select_elements FROM table_sources [prewhere_clause] [where_clause] [group_by_clause] [having_clause] [order_by_clause] [limit_clause] [offset_clause]
+select_stmt: SELECT " " ["DISTINCT "] select_elements " FROM " table_name [where_clause] [group_by_clause] [having_clause] [order_by_clause] [limit_clause]
 
 // ---------- Select elements ----------
-select_elements: ASTERISK | select_element (COMMA SP select_element)*
-select_element: column_expr [SP alias_clause]
-alias_clause: AS SP identifier | identifier
+select_elements: "*" | select_element | select_element ", " select_elements
+select_element: column_expr | column_expr " AS " identifier | column_expr " " identifier
 
-// ---------- Column expressions (simplified but more complete) ----------
+// ---------- Column expressions (simple - no binary operators to avoid ambiguity) ----------
 column_expr: column_identifier
            | aggregate_func
            | function_call
            | literal
-           | column_expr SP arithmetic_op SP column_expr
-           | column_expr SP comparison_op SP column_expr
-           | column_expr SP logical_op SP column_expr
-           | column_expr SP IS SP [NOT SP] NULL
-           | column_expr SP [NOT SP] (LIKE | ILIKE) SP STRING_LITERAL
-           | column_expr SP [NOT SP] [GLOBAL SP] IN SP LPAREN (value_list | select_stmt) RPAREN
-           | column_expr SP BETWEEN SP column_expr SP AND SP column_expr
-           | CASE [SP column_expr] SP when_clause+ [SP ELSE SP column_expr] SP END
-           | CAST LPAREN SP column_expr SP AS SP data_type SP RPAREN
-           | LPAREN column_expr RPAREN
+           | "(" column_expr ")"
+           | "CASE " when_clause [" ELSE " column_expr] " END"
+           | "CASE " when_clause " " when_clause [" ELSE " column_expr] " END"
 
-column_identifier: [table_name DOT] identifier
+column_identifier: identifier
 
 // ---------- Functions ----------
-function_call: identifier LPAREN SP function_args SP RPAREN
-             | identifier LPAREN SP DISTINCT SP function_args SP RPAREN
-             | identifier LPAREN RPAREN
-function_args: column_expr (COMMA SP column_expr)*
+function_call: identifier "(" function_args ")"
+             | identifier "(DISTINCT " function_args ")"
+             | identifier "()"
+function_args: column_expr | column_expr ", " function_args
 
-aggregate_func: count_func | sum_func | avg_func | min_func | max_func | group_concat_func
-count_func: "count" LPAREN SP ASTERISK SP RPAREN
-           | "count" LPAREN SP DISTINCT SP column_expr SP RPAREN
-           | "count" LPAREN RPAREN
-sum_func: "sum" LPAREN [SP] column_expr [SP] RPAREN
-avg_func: "avg" LPAREN [SP] column_expr [SP] RPAREN
-min_func: "min" LPAREN [SP] column_expr [SP] RPAREN
-max_func: "max" LPAREN [SP] column_expr [SP] RPAREN
-group_concat_func: "groupArray" LPAREN [SP] column_expr [SP] RPAREN
+aggregate_func: count_func | sum_func | avg_func | min_func | max_func
+count_func: "count(*)" | "count(DISTINCT " column_expr ")" | "count()"
+sum_func: "sum(" column_expr ")"
+avg_func: "avg(" column_expr ")"
+min_func: "min(" column_expr ")"
+max_func: "max(" column_expr ")"
 
-// ---------- Table sources ----------
-table_sources: table_source (COMMA SP table_source)*
-table_source: table_name [SP alias_clause]
-
-// Fixed table name for this use case
+// Fixed table name
 table_name: "IBM_HR_Employee_Attrition"
 
-// ---------- Clauses ----------
-prewhere_clause: PREWHERE SP column_expr
-where_clause: WHERE SP column_expr
-group_by_clause: GROUP SP BY SP group_by_list [SP WITH SP (CUBE | ROLLUP | TOTALS)]
-group_by_list: column_expr (COMMA SP column_expr)*
-having_clause: HAVING SP column_expr
-order_by_clause: ORDER SP BY SP order_by_list
-order_by_list: order_by_item (COMMA SP order_by_item)*
-order_by_item: column_expr [SP (ASC | ASCENDING | DESC | DESCENDING)] [SP NULLS SP (FIRST | LAST)]
-limit_clause: LIMIT SP NUMBER [SP BY SP column_expr_list] [SP WITH SP TIES]
-offset_clause: OFFSET SP NUMBER
-column_expr_list: column_expr (COMMA SP column_expr)*
+// ---------- Clauses (operators allowed here) ----------
+where_clause: " WHERE " condition
+condition: predicate | condition " AND " condition | condition " OR " condition | "(" condition ")"
+predicate: column_identifier " = " value
+         | column_identifier " != " value
+         | column_identifier " > " value
+         | column_identifier " < " value
+         | column_identifier " >= " value
+         | column_identifier " <= " value
+         | column_identifier " IS " ["NOT "] NULL
+         | column_identifier [" NOT"] " LIKE " STRING_LITERAL
+         | column_identifier [" NOT"] " IN (" value_list ")"
+         | column_identifier " BETWEEN " value " AND " value
 
-// ---------- Operators ----------
-arithmetic_op: PLUS | DASH | ASTERISK | SLASH | PERCENT
-comparison_op: EQ | NEQ | GT | LT | GTE | LTE
-logical_op: AND | OR
+group_by_clause: " GROUP BY " group_by_list
+group_by_list: column_identifier | column_identifier ", " group_by_list
+having_clause: " HAVING " condition
+order_by_clause: " ORDER BY " order_by_list
+order_by_list: order_by_item | order_by_item ", " order_by_list
+order_by_item: column_identifier [" ASC" | " DESC"]
+limit_clause: " LIMIT " NUMBER
 
 // ---------- Case expressions ----------
-when_clause: WHEN SP column_expr SP THEN SP column_expr
+when_clause: "WHEN " condition " THEN " column_expr
 
 // ---------- Literals and values ----------
-literal: NUMBER | FLOATING_LITERAL | STRING_LITERAL | NULL
-value_list: literal (COMMA SP literal)*
-
-// ---------- Data types (simplified) ----------
-data_type: "Int8" | "Int16" | "Int32" | "Int64"
-         | "UInt8" | "UInt16" | "UInt32" | "UInt64"
-         | "Float32" | "Float64"
-         | "String" | "FixedString" LPAREN SP NUMBER SP RPAREN
-         | "Date" | "DateTime" | "DateTime64"
-         | "UUID" | "Array" LPAREN SP data_type SP RPAREN
+literal: NUMBER | STRING_LITERAL | NULL
+value: NUMBER | STRING_LITERAL | NULL
+value_list: value | value ", " value_list
 
 identifier: IDENTIFIER

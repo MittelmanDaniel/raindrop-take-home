@@ -10,7 +10,8 @@ def load_grammar():
         return f.read()
 
 
-CLICKHOUSE_SQL_GRAMMAR = load_grammar()
+# Load grammar dynamically on each request to pick up changes
+# (Small overhead, but ensures grammar updates work without restart)
 
 
 SCHEMA_INFO = """
@@ -75,12 +76,15 @@ Natural language query: {natural_language_query}
 Generate a valid ClickHouse SQL query that:
 1. Uses SELECT statements only (read-only queries)
 2. Queries from the table: IBM_HR_Employee_Attrition
-3. Uses proper ClickHouse syntax
+3. Uses proper ClickHouse syntax with correct spacing
 4. Matches the exact column names from the schema above
+5. For conditional logic, use CASE WHEN with proper spacing: CASE WHEN condition THEN value ELSE value END
+6. Use comparison operators: =, !=, >, <, >=, <= (not EQ, NEQ, etc.)
+7. Always include spaces between keywords and operators
 
 The grammar will automatically add FORMAT JSON to the query.
 
-YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR."""
+YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR. Pay special attention to spacing in CASE statements and function calls."""
 
     try:
         response = OPENAI_CLIENT.responses.create(
@@ -91,11 +95,11 @@ YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR."""
                 {
                     "type": "custom",
                     "name": "clickhouse_sql_grammar",
-                    "description": "Generates read-only ClickHouse SQL queries for the IBM_HR_Employee_Attrition table. Only SELECT statements are allowed. Always end queries with FORMAT JSON. YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR.",
+                    "description": "Generates read-only ClickHouse SQL queries for the IBM_HR_Employee_Attrition table. Only SELECT statements are allowed. Always end queries with FORMAT JSON. Use actual SQL operators (=, !=, >, <) not terminal names. Use proper spacing in all statements, especially CASE WHEN expressions. YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR.",
                     "format": {
                         "type": "grammar",
                         "syntax": "lark",
-                        "definition": CLICKHOUSE_SQL_GRAMMAR
+                        "definition": load_grammar()  # Reload grammar on each request
                     }
                 },
             ],
