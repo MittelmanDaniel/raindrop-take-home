@@ -138,7 +138,7 @@ select_stmt: SELECT " " ["DISTINCT "] select_elements [" FROM " from_clause] [pr
 from_clause: table_expr (join_clause)*
 
 table_expr: table_identifier [" AS " identifier]
-    | "(" " " select_query " " ")" [" AS " identifier]
+    | "(" select_query ")" [" AS " identifier]
 
 join_clause: [join_type] " JOIN " table_expr join_condition
 
@@ -175,7 +175,7 @@ column_expr_term: column_identifier
     | function_call
     | literal
     | "(" column_expr ")"
-    | "(" " " select_query " " ")"
+    | "(" select_query ")"
     | "CASE " when_clause+ [" ELSE " column_expr] " END"
     | "CAST(" column_expr " AS " type_identifier ")"
     | "[" value_list "]" -> array_literal
