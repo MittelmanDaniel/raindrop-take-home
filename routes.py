@@ -40,3 +40,21 @@ async def natural_language_query(request: NaturalLanguageQuery):
             "natural_language_query": request.query
         }
 
+
+@router.get("/run-evals")
+async def run_evals():
+    """Run evaluation tests for CFG SQL generation."""
+    from evals import run_all_evals
+    
+    try:
+        all_passed = run_all_evals()
+        return {
+            "status": "success" if all_passed else "partial",
+            "message": "Evals completed"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
