@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Natural Language to SQL Query</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -20,7 +22,12 @@
                 </button>
                 <div id="schemaInfo" class="schema-info" style="display: none;">
                     <div class="dataset-description">
-                        <p>This dataset contains IBM HR Analytics Employee Attrition data. It includes information about employee demographics, job satisfaction, work-life balance, compensation, and attrition status. The data is sourced from the <a href="https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset" target="_blank">IBM HR Analytics Employee Attrition & Performance dataset on Kaggle</a>.</p>
+                        <p>This dataset contains IBM HR Analytics Employee Attrition data. It includes information about
+                            employee demographics, job satisfaction, work-life balance, compensation, and attrition
+                            status. The data is sourced from the <a
+                                href="https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset"
+                                target="_blank">IBM HR Analytics Employee Attrition & Performance dataset on Kaggle</a>.
+                        </p>
                     </div>
                     <div class="schema-stats">
                         <div class="stat-item">
@@ -43,36 +50,62 @@
 
             <div class="query-section">
                 <label for="queryInput">Enter your question:</label>
-                <input 
-                    type="text" 
-                    id="queryInput" 
-                    class="query-input" 
+                <input type="text" id="queryInput" class="query-input"
                     placeholder="e.g., How many employees are in the Sales department?"
-                    onkeypress="if(event.key === 'Enter') submitQuery()"
-                >
+                    onkeypress="if(event.key === 'Enter') submitQuery()">
                 <button class="submit-btn" onclick="submitQuery()" id="submitBtn">
                     Query
                 </button>
             </div>
 
             <div class="examples">
-                <h3>Example Queries:</h3>
-                <div class="example-queries">
-                    <button class="example-btn" onclick="useExample('How many employees are in the Sales department?')">
-                        How many employees are in the Sales department?
-                    </button>
-                    <button class="example-btn" onclick="useExample('What is the average monthly income by department?')">
-                        What is the average monthly income by department?
-                    </button>
-                    <button class="example-btn" onclick="useExample('Show me the top 10 employees by monthly income')">
-                        Show me the top 10 employees by monthly income
-                    </button>
-                    <button class="example-btn" onclick="useExample('Count employees by gender')">
-                        Count employees by gender
-                    </button>
-                    <button class="example-btn" onclick="useExample('What is the average age of employees who work overtime?')">
-                        What is the average age of employees who work overtime?
-                    </button>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>Example Queries:</h3>
+                        <div class="example-queries">
+                            <button class="example-btn"
+                                onclick="useExample('How many employees are in the Sales department?')">
+                                How many employees are in the Sales department?
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('What is the average monthly income by department?')">
+                                What is the average monthly income by department?
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('Show me the top 10 employees by monthly income')">
+                                Show me the top 10 employees by monthly income
+                            </button>
+                            <button class="example-btn" onclick="useExample('Count employees by gender')">
+                                Count employees by gender
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('What is the average age of employees who work overtime?')">
+                                What is the average age of employees who work overtime?
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3 style="color: #6200ea;">Advanced Features:</h3>
+                        <div class="example-queries">
+                            <button class="example-btn"
+                                onclick="useExample('Show rank of employees by income within each department')">
+                                🏆 Rank Employees by Income (Window Function)
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('Find employees with the same job role as employee 1001')">
+                                👥 Same Job Role as 1001 (Self Join)
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('Calculate the standard deviation of monthly income by department')">
+                                📈 Income Std Dev by Dept (Adv. Aggregate)
+                            </button>
+                            <button class="example-btn"
+                                onclick="useExample('Show the count of unique job roles using the uniq function')">
+                                🔢 Unique Job Roles (Dynamic Function)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -99,5 +132,5 @@
 
     <script src="/static/script.js"></script>
 </body>
-</html>
 
+</html>
