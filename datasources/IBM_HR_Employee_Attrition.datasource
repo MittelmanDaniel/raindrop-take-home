@@ -1,0 +1,44 @@
+DESCRIPTION >
+    Generated from /Users/danielmittelman/raindrop_take_home/IBM_HR_Employee_Attrition.csv
+
+SCHEMA >
+    `_age` Int16,
+    `attrition` String,
+    `businesstravel` String,
+    `dailyrate` Int32,
+    `department` String,
+    `distancefromhome` Int16,
+    `education` Int16,
+    `educationfield` String,
+    `employeecount` Int16,
+    `employeenumber` Int32,
+    `environmentsatisfaction` Int16,
+    `gender` String,
+    `hourlyrate` Int16,
+    `jobinvolvement` Int16,
+    `joblevel` Int16,
+    `jobrole` String,
+    `jobsatisfaction` Int16,
+    `maritalstatus` String,
+    `monthlyincome` Int32,
+    `monthlyrate` Int32,
+    `numcompaniesworked` Int16,
+    `over18` String,
+    `overtime` String,
+    `percentsalaryhike` Int16,
+    `performancerating` Int16,
+    `relationshipsatisfaction` Int16,
+    `standardhours` Int16,
+    `stockoptionlevel` Int16,
+    `totalworkingyears` Int16,
+    `trainingtimeslastyear` Int16,
+    `worklifebalance` Int16,
+    `yearsatcompany` Int16,
+    `yearsincurrentrole` Int16,
+    `yearssincelastpromotion` Int16,
+    `yearswithcurrmanager` Int16
+
+ENGINE "MergeTree"
+# ENGINE_SORTING_KEY "user_id, timestamp"
+# ENGINE_TTL "timestamp + toIntervalDay(60)"
+# Learn more at https://www.tinybird.co/docs/forward/dev-reference/datafiles/datasource-files

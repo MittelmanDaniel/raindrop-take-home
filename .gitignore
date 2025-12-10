@@ -1,0 +1,6 @@
+.tinyb
+.terraform
+*.csv
+__pycache__/
+.cursorrules
+.env*
