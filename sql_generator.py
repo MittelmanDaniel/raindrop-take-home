@@ -1,6 +1,16 @@
-"""SQL generation from natural language using OpenAI."""
-import re
+"""SQL generation from natural language using OpenAI CFG."""
+import os
 from config import OPENAI_CLIENT
+
+
+def load_grammar():
+    """Load the ClickHouse SQL grammar from the .lark file."""
+    grammar_path = os.path.join(os.path.dirname(__file__), 'clickhouse_sql.lark')
+    with open(grammar_path, 'r') as f:
+        return f.read()
+
+
+CLICKHOUSE_SQL_GRAMMAR = load_grammar()
 
 
 SCHEMA_INFO = """
@@ -45,7 +55,7 @@ Available columns in IBM_HR_Employee_Attrition table:
 
 def generate_sql_from_natural_language(natural_language_query: str) -> str:
     """
-    Convert natural language to ClickHouse SQL using OpenAI.
+    Convert natural language to ClickHouse SQL using OpenAI CFG.
     
     Args:
         natural_language_query: Natural language question
@@ -65,31 +75,45 @@ Natural language query: {natural_language_query}
 Generate a valid ClickHouse SQL query that:
 1. Uses SELECT statements only (read-only queries)
 2. Queries from the table: IBM_HR_Employee_Attrition
-3. Always ends with FORMAT JSON
-4. Uses proper ClickHouse syntax
-5. Matches the exact column names from the schema above
+3. Uses proper ClickHouse syntax
+4. Matches the exact column names from the schema above
 
-Return ONLY the SQL query, nothing else. Do not include any explanations or markdown formatting."""
+The grammar will automatically add FORMAT JSON to the query.
+
+YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR."""
 
     try:
-        response = OPENAI_CLIENT.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a SQL expert specializing in ClickHouse. Generate only valid SQL queries."},
-                {"role": "user", "content": prompt}
+        response = OPENAI_CLIENT.responses.create(
+            model="gpt-5.1",
+            input=prompt,
+            text={"format": {"type": "text"}},
+            tools=[
+                {
+                    "type": "custom",
+                    "name": "clickhouse_sql_grammar",
+                    "description": "Generates read-only ClickHouse SQL queries for the IBM_HR_Employee_Attrition table. Only SELECT statements are allowed. Always end queries with FORMAT JSON. YOU MUST REASON HEAVILY ABOUT THE QUERY AND MAKE SURE IT OBEYS THE GRAMMAR.",
+                    "format": {
+                        "type": "grammar",
+                        "syntax": "lark",
+                        "definition": CLICKHOUSE_SQL_GRAMMAR
+                    }
+                },
             ],
-            temperature=0.1
+            parallel_tool_calls=False
         )
         
-        sql_query = response.choices[0].message.content.strip()
+        # Extract the SQL query from the tool call
+        sql_query = None
+        for item in response.output:
+            if hasattr(item, 'input'):
+                sql_query = item.input
+                break
         
-        # Remove markdown code blocks if present
-        sql_query = re.sub(r'^```sql\s*', '', sql_query, flags=re.IGNORECASE)
-        sql_query = re.sub(r'^```\s*', '', sql_query, flags=re.IGNORECASE)
-        sql_query = re.sub(r'```\s*$', '', sql_query, flags=re.IGNORECASE)
+        if not sql_query:
+            raise Exception("Failed to generate SQL query from OpenAI response - no tool call found")
+        
+        # Ensure FORMAT JSON is present (safety check, though grammar should enforce it)
         sql_query = sql_query.strip()
-        
-        # Ensure FORMAT JSON is present
         if "FORMAT JSON" not in sql_query.upper():
             sql_query = sql_query.rstrip().rstrip(';') + " FORMAT JSON"
         

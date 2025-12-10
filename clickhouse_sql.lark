@@ -1,0 +1,81 @@
+// ---------- Terminals (defined first) ----------
+IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
+NUMBER: /[0-9]+/
+STRING_LITERAL: /'[^']*'/
+
+// ---------- Punctuation & operators ----------
+SP: " "
+COMMA: ","
+SEMI: ";"
+LPAREN: "("
+RPAREN: ")"
+GT: ">"
+LT: "<"
+GTE: ">="
+LTE: "<="
+EQ: "="
+NEQ: "!=" | "<>"
+
+// ---------- SQL Keywords ----------
+SELECT: "SELECT"
+FROM: "FROM"
+WHERE: "WHERE"
+GROUP: "GROUP"
+BY: "BY"
+ORDER: "ORDER"
+LIMIT: "LIMIT"
+HAVING: "HAVING"
+AS: "AS"
+DISTINCT: "DISTINCT"
+AND: "AND"
+OR: "OR"
+LIKE: "LIKE"
+IN: "IN"
+NOT: "NOT"
+IS: "IS"
+NULL: "NULL"
+ASC: "ASC"
+DESC: "DESC"
+FORMAT: "FORMAT"
+JSON: "JSON"
+
+// ---------- Rules ----------
+start: SELECT SP select_list SP FROM SP table_name [SP where_clause] [SP group_by_clause] [SP having_clause] [SP order_by_clause] [SP limit_clause] SP FORMAT SP JSON [SEMI]
+
+table_name: "IBM_HR_Employee_Attrition"
+
+select_list: "*" | select_item (COMMA SP select_item)*
+select_item: column_expr [SP AS SP alias]
+column_expr: column_name | aggregate_func
+column_name: IDENTIFIER
+alias: IDENTIFIER
+
+aggregate_func: count_func | sum_func | avg_func | min_func | max_func
+count_func: "count" LPAREN SP count_arg SP RPAREN
+           | "count" LPAREN RPAREN
+count_arg: "*" | DISTINCT SP column_name
+sum_func: "sum" LPAREN [SP] column_name [SP] RPAREN
+avg_func: "avg" LPAREN [SP] column_name [SP] RPAREN
+min_func: "min" LPAREN [SP] column_name [SP] RPAREN
+max_func: "max" LPAREN [SP] column_name [SP] RPAREN
+
+where_clause: WHERE SP condition
+condition: predicate | condition SP AND SP condition | condition SP OR SP condition | LPAREN condition RPAREN
+predicate: column_name SP comparison_op SP value
+          | column_name SP LIKE SP STRING_LITERAL
+          | column_name SP IN SP LPAREN value_list RPAREN
+          | column_name SP IS SP [NOT SP] NULL
+comparison_op: EQ | NEQ | GT | LT | GTE | LTE
+value: NUMBER | STRING_LITERAL
+value_list: value (COMMA SP value)*
+
+group_by_clause: GROUP SP BY SP column_list
+column_list: column_name (COMMA SP column_name)*
+
+having_clause: HAVING SP condition
+
+order_by_clause: ORDER SP BY SP order_item (COMMA SP order_item)*
+order_item: column_name [SP (ASC | DESC)]
+
+limit_clause: LIMIT SP NUMBER
+
