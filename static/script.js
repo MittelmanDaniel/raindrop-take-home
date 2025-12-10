@@ -1,3 +1,61 @@
+// Load schema info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSchemaInfo();
+});
+
+function toggleSchema() {
+    const schemaInfo = document.getElementById('schemaInfo');
+    const toggleIcon = document.getElementById('schemaToggleIcon');
+    const isVisible = schemaInfo.style.display !== 'none';
+    
+    schemaInfo.style.display = isVisible ? 'none' : 'block';
+    toggleIcon.textContent = isVisible ? '▼' : '▲';
+}
+
+async function loadSchemaInfo() {
+    try {
+        const response = await fetch('/schema');
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Error loading schema:', data.error);
+            return;
+        }
+        
+        // Update stats
+        document.getElementById('totalRows').textContent = data.total_rows.toLocaleString();
+        document.getElementById('tableName').textContent = data.table_name;
+        document.getElementById('columnCount').textContent = data.columns.length;
+        
+        // Display departments
+        const deptList = document.getElementById('departmentsList');
+        deptList.innerHTML = '';
+        if (data.departments && data.departments.length > 0) {
+            data.departments.forEach(dept => {
+                const badge = document.createElement('div');
+                badge.className = 'department-badge';
+                badge.innerHTML = `<strong>${dept.department}:</strong> ${dept.count} employees`;
+                deptList.appendChild(badge);
+            });
+        }
+        
+        // Display columns
+        const columnsList = document.getElementById('columnsList');
+        columnsList.innerHTML = '';
+        data.columns.forEach(col => {
+            const colItem = document.createElement('div');
+            colItem.className = 'column-item';
+            colItem.innerHTML = `
+                <span class="column-name">${col.name}</span>
+                <span class="column-type">${col.type}</span>
+            `;
+            columnsList.appendChild(colItem);
+        });
+    } catch (error) {
+        console.error('Error loading schema info:', error);
+    }
+}
+
 function createStatCard(label, value) {
     const card = document.createElement('div');
     card.className = 'stat-card';

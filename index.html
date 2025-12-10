@@ -14,6 +14,30 @@
         </div>
 
         <div class="content">
+            <div class="schema-section">
+                <button class="schema-toggle" onclick="toggleSchema()" id="schemaToggle">
+                    📊 Dataset Overview <span id="schemaToggleIcon">▼</span>
+                </button>
+                <div id="schemaInfo" class="schema-info" style="display: none;">
+                    <div class="schema-stats">
+                        <div class="stat-item">
+                            <strong>Total Rows:</strong> <span id="totalRows">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <strong>Table:</strong> <span id="tableName">-</span>
+                        </div>
+                    </div>
+                    <div class="departments-section">
+                        <h4>Departments:</h4>
+                        <div id="departmentsList" class="departments-list"></div>
+                    </div>
+                    <div class="columns-section">
+                        <h4>Available Columns (<span id="columnCount">-</span>):</h4>
+                        <div id="columnsList" class="columns-list"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="query-section">
                 <label for="queryInput">Enter your question:</label>
                 <input 
